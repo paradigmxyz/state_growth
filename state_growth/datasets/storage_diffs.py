@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import polars as pl
 
-from state_growth import binary_zero_word
+from ..spec import binary_zero_word
 
 
 def aggregate_storage_diffs(

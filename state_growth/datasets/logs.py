@@ -6,70 +6,48 @@ from state_growth.spec import event_types, erc20s
 
 
 def aggregate_logs(df: pl.DataFrame, *, group_by: str = 'block_number') -> pl.DataFrame:
+    transfer = bytes.fromhex(event_types['transfer'][2:])
+    approval = bytes.fromhex(event_types['approval'][2:])
+    WETH = bytes.fromhex(erc20s['weth'][2:])
+    USDT = bytes.fromhex(erc20s['usdt'][2:])
+    USDC = bytes.fromhex(erc20s['usdc'][2:])
+
     erc20_transfers_per_block = (
-        df.filter(
-            (pl.col.topic0 == bytes.fromhex(event_types['transfer'][2:]))
-            & (pl.col.topic3.is_null())
-        )
-        .group_by('block_number')
+        df.filter((pl.col.topic0 == transfer) & (pl.col.topic3.is_null()))
+        .group_by(group_by)
         .agg(
             erc20_transfers=pl.len(),
-            weth_transfers=pl.col.address.filter(
-                pl.col.address == bytes.fromhex(erc20s['weth'][2:])
-            ).count(),
-            usdt_transfers=pl.col.address.filter(
-                pl.col.address == bytes.fromhex(erc20s['usdt'][2:])
-            ).count(),
-            usdc_transfers=pl.col.address.filter(
-                pl.col.address == bytes.fromhex(erc20s['usdc'][2:])
-            ).count(),
+            weth_transfers=pl.col.address.filter(pl.col.address == WETH).count(),
+            usdt_transfers=pl.col.address.filter(pl.col.address == USDT).count(),
+            usdc_transfers=pl.col.address.filter(pl.col.address == USDC).count(),
         )
     )
 
     erc20_approvals_per_block = (
-        df.filter(
-            (pl.col.topic0 == bytes.fromhex(event_types['approval'][2:]))
-            & (pl.col.topic3.is_null())
-        )
-        .group_by('block_number')
+        df.filter((pl.col.topic0 == approval) & (pl.col.topic3.is_null()))
+        .group_by(group_by)
         .agg(
             erc20_approvals=pl.len(),
-            weth_approvals=pl.col.address.filter(
-                pl.col.address == bytes.fromhex(erc20s['weth'][2:])
-            ).count(),
-            usdt_approvals=pl.col.address.filter(
-                pl.col.address == bytes.fromhex(erc20s['usdt'][2:])
-            ).count(),
-            usdc_approvals=pl.col.address.filter(
-                pl.col.address == bytes.fromhex(erc20s['usdc'][2:])
-            ).count(),
+            weth_approvals=pl.col.address.filter(pl.col.address == WETH).count(),
+            usdt_approvals=pl.col.address.filter(pl.col.address == USDT).count(),
+            usdc_approvals=pl.col.address.filter(pl.col.address == USDC).count(),
         )
     )
 
     erc721_transfers_per_block = (
-        df.filter(
-            (pl.col.topic0 == bytes.fromhex(event_types['transfer'][2:]))
-            & (~pl.col.topic3.is_null())
-        )
-        .group_by('block_number')
-        .agg(
-            erc721_transfers=pl.len(),
-        )
+        df.filter((pl.col.topic0 == transfer) & (~pl.col.topic3.is_null()))
+        .group_by(group_by)
+        .agg(erc721_transfers=pl.len())
     )
 
     erc721_approvals_per_block = (
-        df.filter(
-            (pl.col.topic0 == bytes.fromhex(event_types['approval'][2:]))
-            & (~pl.col.topic3.is_null())
-        )
-        .group_by('block_number')
-        .agg(
-            erc721_approvals=pl.len(),
-        )
+        df.filter((pl.col.topic0 == approval) & (~pl.col.topic3.is_null()))
+        .group_by(group_by)
+        .agg(erc721_approvals=pl.len())
     )
 
     return (
-        df.group_by('block_number', maintain_order=True)
+        df.group_by(group_by, maintain_order=True)
         .agg(
             n_logs=pl.len(),
             n_topics=(
@@ -82,24 +60,8 @@ def aggregate_logs(df: pl.DataFrame, *, group_by: str = 'block_number') -> pl.Da
             n_event_types=pl.col.topic0.n_unique(),
             n_log_data_bytes=pl.sum('n_data_bytes'),
         )
-        .join(
-            erc20_transfers_per_block,
-            on='block_number',
-            how='outer_coalesce',
-        )
-        .join(
-            erc20_approvals_per_block,
-            on='block_number',
-            how='outer_coalesce',
-        )
-        .join(
-            erc721_transfers_per_block,
-            on='block_number',
-            how='outer_coalesce',
-        )
-        .join(
-            erc721_approvals_per_block,
-            on='block_number',
-            how='outer_coalesce',
-        )
+        .join(erc20_transfers_per_block, on=group_by, how='outer_coalesce')
+        .join(erc20_approvals_per_block, on=group_by, how='outer_coalesce')
+        .join(erc721_transfers_per_block, on=group_by, how='outer_coalesce')
+        .join(erc721_approvals_per_block, on=group_by, how='outer_coalesce')
     )
