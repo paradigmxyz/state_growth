@@ -2,12 +2,10 @@ from __future__ import annotations
 
 import typing
 
-import polars as pl
-
 import state_growth
-from state_growth import FrameType
 
 if typing.TYPE_CHECKING:
+    from state_growth import FrameType
     from mypy_extensions import DefaultNamedArg
 
 
