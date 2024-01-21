@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import polars as pl
 
-from ..spec import binary_zero_word
+from ..spec import binary_zero_word, FrameType
 
 
 def aggregate_storage_diffs(
-    df: pl.DataFrame, *, group_by: str = 'block_number'
-) -> pl.DataFrame:
+    df: FrameType, *, group_by: str = 'block_number'
+) -> FrameType:
     return (
         df.group_by(group_by)
         .agg(

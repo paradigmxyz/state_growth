@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import polars as pl
 
-from state_growth.spec import event_types, erc20s
+from state_growth.spec import event_types, erc20s, FrameType
 
 
-def aggregate_logs(df: pl.DataFrame, *, group_by: str = 'block_number') -> pl.DataFrame:
+def aggregate_logs(df: FrameType, *, group_by: str = 'block_number') -> FrameType:
     transfer = bytes.fromhex(event_types['transfer'][2:])
     approval = bytes.fromhex(event_types['approval'][2:])
     WETH = bytes.fromhex(erc20s['weth'][2:])

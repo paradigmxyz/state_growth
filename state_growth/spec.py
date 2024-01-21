@@ -1,3 +1,12 @@
+from __future__ import annotations
+
+import typing
+
+import polars as pl
+
+
+FrameType = typing.TypeVar('FrameType', pl.DataFrame, pl.LazyFrame)
+
 binary_zero_word = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 
 
