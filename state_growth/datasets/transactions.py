@@ -3,9 +3,11 @@ from __future__ import annotations
 import polars as pl
 
 
-def aggregate_transactions(df: pl.DataFrame) -> pl.DataFrame:
+def aggregate_transactions(
+    df: pl.DataFrame, *, group_by: str = 'block_number'
+) -> pl.DataFrame:
     return (
-        df.group_by('block_number')
+        df.group_by(group_by)
         .agg(
             n_txs=pl.len(),
             n_from_addresses=pl.col.from_address.n_unique(),
@@ -16,5 +18,5 @@ def aggregate_transactions(df: pl.DataFrame) -> pl.DataFrame:
             n_input_nonzero_bytes=pl.sum('n_input_nonzero_bytes'),
             n_rlp_bytes=pl.sum('n_rlp_bytes'),
         )
-        .sort('block_number')
+        .sort(group_by)
     )
