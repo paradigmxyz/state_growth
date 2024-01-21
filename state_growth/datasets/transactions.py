@@ -1,15 +1,11 @@
 from __future__ import annotations
 
-import typing
-
 import polars as pl
 
 
-def aggregate_transactions(
-    txs: pl.DataFrame, min_block: int | None = None, max_block: int | None = None
-) -> pl.DataFrame:
-    txs_agg = (
-        txs.group_by('block_number')
+def aggregate_transactions(df: pl.DataFrame) -> pl.DataFrame:
+    return (
+        df.group_by('block_number')
         .agg(
             n_txs=pl.len(),
             n_from_addresses=pl.col.from_address.n_unique(),
@@ -22,12 +18,3 @@ def aggregate_transactions(
         )
         .sort('block_number')
     )
-
-    if min_block is None:
-        min_block = typing.cast(int, txs['block_number'].min())
-    if max_block is None:
-        max_block = typing.cast(int, txs['block_number'].max())
-    df = pl.DataFrame(pl.Series('block_number', range(min_block, max_block), pl.UInt32))
-    txs_agg = txs_agg.join(df, on='block_number', how='outer_coalesce').fill_null(0)
-
-    return txs_agg

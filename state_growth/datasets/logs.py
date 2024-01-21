@@ -1,17 +1,13 @@
 from __future__ import annotations
 
-import typing
-
 import polars as pl
 
 from state_growth.spec import event_types, erc20s
 
 
-def aggregate_logs(
-    logs: pl.DataFrame, min_block: int | None = None, max_block: int | None = None
-) -> pl.DataFrame:
+def aggregate_logs(df: pl.DataFrame) -> pl.DataFrame:
     erc20_transfers_per_block = (
-        logs.filter(
+        df.filter(
             (pl.col.topic0 == bytes.fromhex(event_types['transfer'][2:]))
             & (pl.col.topic3.is_null())
         )
@@ -31,7 +27,7 @@ def aggregate_logs(
     )
 
     erc20_approvals_per_block = (
-        logs.filter(
+        df.filter(
             (pl.col.topic0 == bytes.fromhex(event_types['approval'][2:]))
             & (pl.col.topic3.is_null())
         )
@@ -51,7 +47,7 @@ def aggregate_logs(
     )
 
     erc721_transfers_per_block = (
-        logs.filter(
+        df.filter(
             (pl.col.topic0 == bytes.fromhex(event_types['transfer'][2:]))
             & (~pl.col.topic3.is_null())
         )
@@ -62,7 +58,7 @@ def aggregate_logs(
     )
 
     erc721_approvals_per_block = (
-        logs.filter(
+        df.filter(
             (pl.col.topic0 == bytes.fromhex(event_types['approval'][2:]))
             & (~pl.col.topic3.is_null())
         )
@@ -72,7 +68,7 @@ def aggregate_logs(
         )
     )
 
-    logs_agg = logs.group_by('block_number', maintain_order=True).agg(
+    return df.group_by('block_number', maintain_order=True).agg(
         n_logs=pl.len(),
         n_topics=(
             4 * pl.len()
@@ -83,40 +79,20 @@ def aggregate_logs(
         ),
         n_event_types=pl.col.topic0.n_unique(),
         n_log_data_bytes=pl.sum('n_data_bytes'),
+    ).join(
+        erc20_transfers_per_block,
+        on='block_number',
+        how='outer_coalesce',
+    ).join(
+        erc20_approvals_per_block,
+        on='block_number',
+        how='outer_coalesce',
+    ).join(
+        erc721_transfers_per_block,
+        on='block_number',
+        how='outer_coalesce',
+    ).join(
+        erc721_approvals_per_block,
+        on='block_number',
+        how='outer_coalesce',
     )
-
-    logs_agg = (
-        logs_agg.join(
-            erc20_transfers_per_block,
-            on='block_number',
-            how='outer_coalesce',
-        )
-        .join(
-            erc20_approvals_per_block,
-            on='block_number',
-            how='outer_coalesce',
-        )
-        .join(
-            erc721_transfers_per_block,
-            on='block_number',
-            how='outer_coalesce',
-        )
-        .join(
-            erc721_approvals_per_block,
-            on='block_number',
-            how='outer_coalesce',
-        )
-    )
-
-    if min_block is None:
-        min_block = typing.cast(int, logs['block_number'].min())
-    if max_block is None:
-        max_block = typing.cast(int, logs['block_number'].max())
-    block_series = pl.DataFrame(
-        pl.Series('block_number', range(min_block, max_block), pl.UInt32)
-    )
-    logs_agg = logs_agg.join(
-        block_series, on='block_number', how='outer_coalesce'
-    ).fill_null(0)
-
-    return logs_agg
