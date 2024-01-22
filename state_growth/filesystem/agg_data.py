@@ -10,20 +10,6 @@ import tooltime
 from ..spec import agg_path_template, agg_filename_template, agg_time_format
 
 
-def timestamp_to_str(timestamp: tooltime.Timestamp) -> str:
-    return tooltime.timestamp_to_datetime(timestamp).strftime(agg_time_format)
-
-
-def str_to_timestamp(raw_str: str) -> int:
-    dt = datetime.datetime.strptime(raw_str, agg_time_format)
-    return tooltime.timestamp_to_seconds(dt)
-
-
-#
-# # aggregate paths
-#
-
-
 class AggFilename(typing.TypedDict):
     network: str
     datatype: str
@@ -83,3 +69,12 @@ def parse_agg_path(path: str) -> AggFilename:
 
 def parse_agg_dir_files(dir_path: str) -> pl.DataFrame:
     return pl.DataFrame([parse_agg_path(dir_path) for file in os.listdir(dir_path)])
+
+
+def timestamp_to_str(timestamp: tooltime.Timestamp) -> str:
+    return tooltime.timestamp_to_datetime(timestamp).strftime(agg_time_format)
+
+
+def str_to_timestamp(raw_str: str) -> int:
+    dt = datetime.datetime.strptime(raw_str, agg_time_format)
+    return tooltime.timestamp_to_seconds(dt)
