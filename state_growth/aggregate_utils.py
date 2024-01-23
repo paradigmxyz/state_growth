@@ -7,7 +7,8 @@ import polars as pl
 import state_growth
 
 if typing.TYPE_CHECKING:
-    from state_growth import FrameType
+    from typing_extensions import Unpack
+    from state_growth import FrameType, RawGlobKwargs
     from mypy_extensions import DefaultNamedArg
 
 
@@ -18,7 +19,7 @@ def aggregate_dataset(
 
 
 def get_aggregate_function(
-    datatype: str
+    datatype: str,
 ) -> typing.Callable[[FrameType, DefaultNamedArg(str, 'group_by')], FrameType]:
     return {
         'balance_diffs': state_growth.aggregate_balance_diffs,
@@ -31,14 +32,19 @@ def get_aggregate_function(
 
 
 def load_multi_aggregate(
-    data_root: str, *, datatypes: typing.Sequence[str] | None = None
+    data_root: str,
+    *,
+    datatypes: typing.Sequence[str] | None = None,
+    **kwargs: Unpack[RawGlobKwargs],
 ) -> pl.DataFrame:
     if datatypes is None:
         datatypes = state_growth.all_datatypes
 
     dfs = {}
     for datatype in datatypes:
-        dfs[datatype] = state_growth.load_and_aggregate(datatype, data_root=data_root)
+        dfs[datatype] = state_growth.load_and_aggregate(
+            datatype, data_root=data_root, **kwargs
+        )
 
     df = dfs[datatypes[0]]
     for datatype in datatypes[1:]:

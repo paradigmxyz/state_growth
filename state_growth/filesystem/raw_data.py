@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import typing
 
-from typing_extensions import Unpack, Optional
+from typing_extensions import Unpack
 
 import polars as pl
 
@@ -34,10 +34,25 @@ def get_raw_glob(
 
 
 def scan_dataset(
-    datatype: str, data_root: str, **kwargs: Unpack[RawGlobKwargs]
+    datatype: str,
+    data_root: str,
+    min_block: int | None = None,
+    max_block: int | None = None,
+    network: str = 'ethereum',
 ) -> pl.LazyFrame:
-    data_glob = get_raw_glob(datatype=datatype, data_root=data_root, **kwargs)
-    return pl.scan_parquet(data_glob)
+    data_glob = get_raw_glob(
+        datatype=datatype,
+        data_root=data_root,
+        min_block=min_block,
+        max_block=max_block,
+        network=network,
+    )
+    scan = pl.scan_parquet(data_glob)
+    if min_block is not None:
+        scan = scan.filter(pl.col.block_number >= min_block)
+    if max_block is not None:
+        scan = scan.filter(pl.col.block_number <= max_block)
+    return scan
 
 
 def load_dataset(
