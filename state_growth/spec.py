@@ -5,6 +5,15 @@ import typing
 import polars as pl
 
 
+all_datatypes = [
+    'balance_diffs',
+    'balance_reads',
+    'logs',
+    'storage_diffs',
+    'storage_reads',
+    'transactions',
+]
+
 FrameType = typing.TypeVar('FrameType', pl.DataFrame, pl.LazyFrame)
 
 binary_zero_word = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
