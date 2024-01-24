@@ -24,6 +24,7 @@ def get_aggregate_function(
     return {
         'balance_diffs': state_growth.aggregate_balance_diffs,
         'balance_reads': state_growth.aggregate_balance_reads,
+        'contracts': state_growth.aggregate_contracts,
         'logs': state_growth.aggregate_logs,
         'storage_diffs': state_growth.aggregate_storage_diffs,
         'storage_reads': state_growth.aggregate_storage_reads,

@@ -8,6 +8,7 @@ import polars as pl
 all_datatypes = [
     'balance_diffs',
     'balance_reads',
+    'contracts',
     'logs',
     'storage_diffs',
     'storage_reads',
