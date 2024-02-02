@@ -17,6 +17,14 @@ schema: AggSchema = {
             'type': 'unique',
             'agg': pl.struct(['address', 'slot']).n_unique(),
         },
+        'n_deleted_storage_slots': {
+            'type': 'unique',
+            'agg': (
+                pl.struct(['address', 'slot'])
+                .filter(pl.col.to_value == binary_zero_word)
+                .len()
+            ),
+        },
         'n_new_storage_slots': {
             'type': 'unique',
             'agg': (
