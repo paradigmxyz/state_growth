@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import typing
 
 import polars as pl
@@ -7,9 +8,11 @@ import polars as pl
 import state_growth
 
 if typing.TYPE_CHECKING:
-    from typing_extensions import Unpack
+    from typing_extensions import Unpack, Callable
     from state_growth import FrameType, RawGlobKwargs
     from mypy_extensions import DefaultNamedArg
+
+    GroupByArg = DefaultNamedArg(str, 'group_by')
 
 
 def aggregate_dataset(
@@ -20,7 +23,7 @@ def aggregate_dataset(
 
 def get_aggregate_function(
     datatype: str,
-) -> typing.Callable[[FrameType, DefaultNamedArg(str, 'group_by')], FrameType]:
+) -> Callable[[FrameType, GroupByArg], FrameType]:
     return {
         'balance_diffs': state_growth.aggregate_balance_diffs,
         'balance_reads': state_growth.aggregate_balance_reads,
@@ -33,7 +36,6 @@ def get_aggregate_function(
 
 
 def load_multi_aggregate(
-    data_root: str,
     *,
     datatypes: typing.Sequence[str] | None = None,
     **kwargs: Unpack[RawGlobKwargs],
@@ -43,9 +45,9 @@ def load_multi_aggregate(
 
     dfs = {}
     for datatype in datatypes:
-        dfs[datatype] = state_growth.load_and_aggregate(
-            datatype, data_root=data_root, **kwargs
-        )
+        datatype_kwargs = copy.copy(kwargs)
+        datatype_kwargs['datatype'] = datatype
+        dfs[datatype] = state_growth.load_and_aggregate(**datatype_kwargs)
 
     df = dfs[datatypes[0]]
     for datatype in datatypes[1:]:
