@@ -5,6 +5,11 @@ import typing
 import polars as pl
 
 
+class DataContext(typing.TypedDict):
+    data_root: str
+    network: str
+
+
 all_datatypes = [
     'balance_diffs',
     'balance_reads',
@@ -19,7 +24,6 @@ FrameType = typing.TypeVar('FrameType', pl.DataFrame, pl.LazyFrame)
 
 binary_zero_word = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 
-
 event_types = {
     'transfer': '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
     'approval': '0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925',
@@ -33,10 +37,3 @@ erc20s = {
     'usdt': '0xdac17f958d2ee523a2206206994597c13d831ec7',
     'usdc': '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
 }
-
-
-agg_path_template = '{timescale}/{datatype}/{filename}'
-agg_filename_template = (
-    '{network}__{datatype}__by_{timescale}__{from_time}_to_{to_time}.parquet'
-)
-agg_time_format = '%Y-%m-%d-%H%M%S'
