@@ -96,9 +96,9 @@ def get_unique_group_unions(
     unique_column: str,
     time_column_name: str,
 ) -> pl.DataFrame:
-    union_bounds_1 = time_data['first_block'][1::2]
+    union_bounds_1 = time_data['first_block'][1::2].to_list()
     label_bounds_1 = time_data[time_column_name][::2].to_list()
-    union_bounds_2 = time_data['first_block'][::2]
+    union_bounds_2 = time_data['first_block'][::2].to_list()
     label_bounds_2 = ['PRE'] + time_data[time_column_name][1::2].to_list()
 
     if len(time_data) % 2 == 1:
@@ -157,4 +157,3 @@ def add_unique_intersection(df: pl.DataFrame) -> pl.DataFrame:
         .with_columns(n_unique_prev_intersection=prev_union_expr)
         .with_columns(overlap_with_previous=overlap_expr)
     )
-

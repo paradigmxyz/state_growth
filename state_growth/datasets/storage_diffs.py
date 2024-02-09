@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import polars as pl
 
-from ..spec import binary_zero_word, FrameType
-from ..schema_utils import get_schema_agg, AggSchema
+import state_growth
 
 
-schema: AggSchema = {
+schema: state_growth.AggSchema = {
     'columns': {
         'n_storage_diffs': {'type': 'count', 'agg': pl.len()},
         'n_written_storage_contracts': {
@@ -21,7 +20,7 @@ schema: AggSchema = {
             'type': 'unique',
             'agg': (
                 pl.struct(['address', 'slot'])
-                .filter(pl.col.to_value == binary_zero_word)
+                .filter(pl.col.to_value == state_growth.binary_zero_word)
                 .len()
             ),
         },
@@ -29,7 +28,7 @@ schema: AggSchema = {
             'type': 'unique',
             'agg': (
                 pl.struct(['address', 'slot'])
-                .filter(pl.col.from_value == binary_zero_word)
+                .filter(pl.col.from_value == state_growth.binary_zero_word)
                 .len()
             ),
         },
@@ -38,6 +37,11 @@ schema: AggSchema = {
 
 
 def aggregate_storage_diffs(
-    df: FrameType, *, group_by: str = 'block_number'
-) -> FrameType:
-    return df.group_by(group_by).agg(**get_schema_agg(schema)).sort(group_by)
+    df: state_growth.FrameType, *, group_by: str = 'block_number'
+) -> state_growth.FrameType:
+    return (
+        df.group_by(group_by)
+        .agg(**state_growth.get_schema_agg(schema))
+        .sort(group_by)
+    )
+

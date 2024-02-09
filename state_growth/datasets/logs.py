@@ -2,15 +2,14 @@ from __future__ import annotations
 
 import polars as pl
 
-from ..spec import event_types, erc20s, FrameType
-from ..schema_utils import get_schema_agg, AggSchema
+import state_growth
 
 
-WETH = bytes.fromhex(erc20s['weth'][2:])
-USDT = bytes.fromhex(erc20s['usdt'][2:])
-USDC = bytes.fromhex(erc20s['usdc'][2:])
+WETH = bytes.fromhex(state_growth.erc20s['weth'][2:])
+USDT = bytes.fromhex(state_growth.erc20s['usdt'][2:])
+USDC = bytes.fromhex(state_growth.erc20s['usdc'][2:])
 
-schema: AggSchema = {
+schema: state_growth.AggSchema = {
     'columns': {
         'n_logs': {'type': 'count', 'agg': pl.len()},
         'n_topics': {
@@ -28,7 +27,7 @@ schema: AggSchema = {
     },
 }
 
-erc20_transfers_schema: AggSchema = {
+erc20_transfers_schema: state_growth.AggSchema = {
     'columns': {
         'erc20_transfers': {'type': 'count', 'agg': pl.len()},
         'weth_transfers': {
@@ -46,7 +45,7 @@ erc20_transfers_schema: AggSchema = {
     },
 }
 
-erc20_approvals_schema: AggSchema = {
+erc20_approvals_schema: state_growth.AggSchema = {
     'columns': {
         'erc20_approvals': {'type': 'count', 'agg': pl.len()},
         'weth_approvals': {
@@ -64,52 +63,55 @@ erc20_approvals_schema: AggSchema = {
     },
 }
 
-erc721_transfers_schema: AggSchema = {
+erc721_transfers_schema: state_growth.AggSchema = {
     'columns': {
         'erc721_transfers': {'type': 'count', 'agg': pl.len()},
     },
 }
 
-erc721_approvals_schema: AggSchema = {
+erc721_approvals_schema: state_growth.AggSchema = {
     'columns': {
         'erc721_approvals': {'type': 'count', 'agg': pl.len()},
     },
 }
 
 
-def aggregate_logs(df: FrameType, *, group_by: str = 'block_number') -> FrameType:
-    transfer = bytes.fromhex(event_types['transfer'][2:])
-    approval = bytes.fromhex(event_types['approval'][2:])
+def aggregate_logs(
+    df: state_growth.FrameType, *, group_by: str = 'block_number'
+) -> state_growth.FrameType:
+    transfer = bytes.fromhex(state_growth.event_types['transfer'][2:])
+    approval = bytes.fromhex(state_growth.event_types['approval'][2:])
 
     erc20_transfers_per_block = (
         df.filter((pl.col.topic0 == transfer) & (pl.col.topic3.is_null()))
         .group_by(group_by)
-        .agg(**get_schema_agg(erc20_transfers_schema))
+        .agg(**state_growth.get_schema_agg(erc20_transfers_schema))
     )
 
     erc20_approvals_per_block = (
         df.filter((pl.col.topic0 == approval) & (pl.col.topic3.is_null()))
         .group_by(group_by)
-        .agg(**get_schema_agg(erc20_approvals_schema))
+        .agg(**state_growth.get_schema_agg(erc20_approvals_schema))
     )
 
     erc721_transfers_per_block = (
         df.filter((pl.col.topic0 == transfer) & (~pl.col.topic3.is_null()))
         .group_by(group_by)
-        .agg(**get_schema_agg(erc721_transfers_schema))
+        .agg(**state_growth.get_schema_agg(erc721_transfers_schema))
     )
 
     erc721_approvals_per_block = (
         df.filter((pl.col.topic0 == approval) & (~pl.col.topic3.is_null()))
         .group_by(group_by)
-        .agg(**get_schema_agg(erc721_approvals_schema))
+        .agg(**state_growth.get_schema_agg(erc721_approvals_schema))
     )
 
     return (
         df.group_by(group_by, maintain_order=True)
-        .agg(**get_schema_agg(schema))
+        .agg(**state_growth.get_schema_agg(schema))
         .join(erc20_transfers_per_block, on=group_by, how='outer_coalesce')
         .join(erc20_approvals_per_block, on=group_by, how='outer_coalesce')
         .join(erc721_transfers_per_block, on=group_by, how='outer_coalesce')
         .join(erc721_approvals_per_block, on=group_by, how='outer_coalesce')
     )
+
