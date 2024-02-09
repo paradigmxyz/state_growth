@@ -1,13 +1,14 @@
 from __future__ import annotations
 
-import datetime
 import typing
+from typing_extensions import Unpack
 import os
 
 import polars as pl
 import tooltime
 
-from ..spec import agg_path_template, agg_filename_template, agg_time_format
+import state_growth
+from ..spec import agg_path_template, agg_filename_template
 
 
 class AggFilename(typing.TypedDict):
@@ -29,8 +30,8 @@ def get_agg_filename(
         network=network,
         datatype=datatype,
         timescale=timescale,
-        from_time=timestamp_to_str(from_time),
-        to_time=timestamp_to_str(to_time),
+        from_time=state_growth.timestamp_to_str(from_time),
+        to_time=state_growth.timestamp_to_str(to_time),
     )
 
 
@@ -71,10 +72,9 @@ def parse_agg_dir_files(dir_path: str) -> pl.DataFrame:
     return pl.DataFrame([parse_agg_path(dir_path) for file in os.listdir(dir_path)])
 
 
-def timestamp_to_str(timestamp: tooltime.Timestamp) -> str:
-    return tooltime.timestamp_to_datetime(timestamp).strftime(agg_time_format)
-
-
-def str_to_timestamp(raw_str: str) -> int:
-    dt = datetime.datetime.strptime(raw_str, agg_time_format)
-    return tooltime.timestamp_to_seconds(dt)
+def load_and_aggregate(
+    **kwargs: Unpack[state_growth.RawGlobKwargs],
+) -> pl.DataFrame:
+    datatype = kwargs['datatype']
+    scan = state_growth.scan_raw_dataset(**kwargs)
+    return state_growth.aggregate_dataset(scan, datatype).collect()

@@ -8,22 +8,27 @@ import polars as pl
 import state_growth
 
 if typing.TYPE_CHECKING:
+    from typing import Mapping
     from typing_extensions import Unpack, Callable
     from state_growth import FrameType, RawGlobKwargs
     from mypy_extensions import DefaultNamedArg
 
-    GroupByArg = DefaultNamedArg(str, 'group_by')
+
+def get_schema_agg(
+    schema: state_growth.AggSchema,
+) -> Mapping[str, state_growth.PolarsAgg]:
+    return {k: v['agg'] for k, v in schema['columns'].items()}
 
 
 def aggregate_dataset(
     df: FrameType, datatype: str, *, group_by: str = 'block_number'
 ) -> FrameType:
-    return get_aggregate_function(datatype)(df)
+    return get_aggregate_function(datatype)(df, group_by=group_by)
 
 
 def get_aggregate_function(
     datatype: str,
-) -> Callable[[FrameType, GroupByArg], FrameType]:
+) -> Callable[[FrameType, DefaultNamedArg(str, 'group_by')], FrameType]:
     return {
         'balance_diffs': state_growth.aggregate_balance_diffs,
         'balance_reads': state_growth.aggregate_balance_reads,
