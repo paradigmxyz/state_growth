@@ -32,6 +32,7 @@ dependencies = [
     'checkthechain',
     'cryo',
     'polars',
+    'numpy',
     'toolstr >=0.9.3, <0.10',
     'tooltime >=0.2.10, <0.3',
 ]
@@ -40,6 +41,10 @@ dependencies = [
 python_version = "3.9"
 strict = true
 implicit_reexport = true
+files = ["state_growth", "scripts"]
 
 [tool.ruff.format]
 quote-style = "single"
+
+[tool.ruff.lint]
+ignore = ["F401", "F403"]
