@@ -183,7 +183,8 @@ def transform_chunk(
     transformed = transformed.select(columns)
 
     # filter out pre-intervals
-    if transformed['first_block'].min() < start_block:
+    min_block = transformed['first_block'].min()
+    if min_block is not None and typing.cast(int, min_block) < start_block:
         transformed = transformed.filter(pl.col.first_block >= start_block)
 
     # write file

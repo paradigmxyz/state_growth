@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import typing
+
 import polars as pl
 
 
-def join_contracts(df, contracts):
+def join_contracts(df: pl.DataFrame, contracts: pl.DataFrame) -> pl.DataFrame:
     return df.join(
         contracts,
         left_on="address",
@@ -12,7 +14,9 @@ def join_contracts(df, contracts):
     )
 
 
-def agg_by_contract_field(agg, contracts, field):
+def agg_by_contract_field(
+    agg: pl.DataFrame, contracts: pl.DataFrame, field: str
+) -> pl.DataFrame:
     return (
         join_contracts(agg, contracts[['contract_address', field]])
         .group_by(field)
@@ -36,7 +40,9 @@ def agg_by_contract_field(agg, contracts, field):
     )
 
 
-def agg_by_contract_fields(agg, contracts):
+def agg_by_contract_fields(
+    agg: pl.DataFrame, contracts: pl.DataFrame
+) -> typing.Mapping[str, pl.DataFrame]:
     agg_by_init_code = agg_by_contract_field(
         agg, contracts, 'init_code_hash'
     ).sort('prop_of_n_creates', descending=True)
@@ -54,7 +60,9 @@ def agg_by_contract_fields(agg, contracts):
     }
 
 
-def plot_cumulative_creates_by_contract_fields(aggs, n=10000):
+def plot_cumulative_creates_by_contract_fields(
+    aggs: typing.Mapping[str, pl.DataFrame], n: int = 10000
+) -> None:
     import matplotlib.pyplot as plt
     import toolplot
 

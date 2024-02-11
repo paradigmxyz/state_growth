@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import polars as pl
 
-def plot_top_contracts(props, n: int = 10_000) -> None:
+
+def plot_top_contracts(props: pl.DataFrame, n: int = 10_000) -> None:
     import toolplot
     import matplotlib.pyplot as plt
 
@@ -26,4 +28,4 @@ def plot_top_contracts(props, n: int = 10_000) -> None:
     plt.xlabel('top n contracts')
     plt.legend(loc='lower right')
     plt.title('Proportion of IO operations in top contracts')
-    plt.show()
+    plt.show()  # type: ignore

@@ -5,7 +5,7 @@ import polars as pl
 import state_growth
 
 
-def aggregate_contract_slot_diffs(df, time_column):
+def aggregate_contract_slot_diffs(df: pl.DataFrame, time_column: str) -> pl.DataFrame:
     creates = df.filter(pl.col.from_value == state_growth.binary_zero_word)
     updates = df.filter(
         (pl.col.from_value != state_growth.binary_zero_word)
@@ -38,7 +38,7 @@ def aggregate_contract_slot_diffs(df, time_column):
     )
 
 
-def compute_contract_slot_agg_proportions(agg):
+def compute_contract_slot_agg_proportions(agg: pl.DataFrame) -> pl.DataFrame:
     exprs = dict(
         prop_slot_writes=pl.sum("n_slot_writes") / agg["n_slot_writes"].sum(),
         prop_slot_creates=pl.sum("n_slot_creates")
