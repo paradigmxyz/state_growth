@@ -48,7 +48,6 @@ def transform_chunks(
         print('transforming', len(chunks), 'chunks:')
         for chunk in chunks:
             print('-', chunk)
-        print()
 
     block_timestamps = state_growth.load_block_timestamps(**context)
 
@@ -56,6 +55,11 @@ def transform_chunks(
         output_datatype = output_datatype_template.format(
             interval=state_growth.interval_type_names[interval_type]
         )
+
+        if verbose:
+            print()
+            print('doing', output_datatype)
+
         time_column_name = interval_type
         raw_time_data = state_growth.get_block_time_interval(
             block_timestamps, state_growth.interval_type_names[interval_type]
@@ -112,11 +116,13 @@ def transform_chunk(
         context['network'] + '_' + 'state_growth',
         output_datatype,
     )
-    filename = '{network}__{datatype}__{start_block:08}_to_{end_block:08}.parquet'.format(
-        network=context['network'],
-        datatype=output_datatype,
-        start_block=start_block,
-        end_block=end_block,
+    filename = (
+        '{network}__{datatype}__{start_block:08}_to_{end_block:08}.parquet'.format(
+            network=context['network'],
+            datatype=output_datatype,
+            start_block=start_block,
+            end_block=end_block,
+        )
     )
     os.makedirs(parent_dir, exist_ok=True)
     path = os.path.join(parent_dir, filename)
@@ -191,4 +197,3 @@ def transform_chunk(
     tmp_path = path + '_tmp'
     transformed.write_parquet(tmp_path)
     shutil.move(tmp_path, path)
-

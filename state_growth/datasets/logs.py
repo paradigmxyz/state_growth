@@ -114,4 +114,3 @@ def aggregate_logs(
         .join(erc721_transfers_per_block, on=group_by, how='outer_coalesce')
         .join(erc721_approvals_per_block, on=group_by, how='outer_coalesce')
     )
-

@@ -9,22 +9,22 @@ import toolstr
 
 def aggregate_by_entity(reth: pl.DataFrame) -> pl.DataFrame:
     return (
-        reth.group_by("Scales with # of")
-        .agg(pl.sum("total_bytes"), pl.max("# Entries"))
+        reth.group_by('Scales with # of')
+        .agg(pl.sum('total_bytes'), pl.max('# Entries'))
         .sort('total_bytes', descending=True)
-        .filter(pl.col("Scales with # of") != "-")
+        .filter(pl.col('Scales with # of') != '-')
         .with_columns(
-            bytes_per_entity=pl.col.total_bytes / pl.col("# Entries"),
+            bytes_per_entity=pl.col.total_bytes / pl.col('# Entries'),
             total_bytes_str=pl.col.total_bytes.map_elements(
                 lambda x: toolstr.format_nbytes(int(x))
-            )
+            ),
         )
     )
 
 
 def compute_bytes_per_entity(reth: pl.DataFrame) -> typing.Mapping[str, float]:
     agg = aggregate_by_entity(reth)
-    return dict(agg[["Scales with # of", "bytes_per_entity"]].rows())
+    return dict(agg[['Scales with # of', 'bytes_per_entity']].rows())
 
 
 # more precise aggregations, including logarithmic model, WIP
@@ -136,4 +136,3 @@ tables = {
 #     print('n_bytes_per_slot:        ', n_bytes_per_slot)
 #     print('n_bytes_per_block:       ', n_bytes_per_block)
 #     print('n_bytes_per_transaction: ', n_bytes_per_transaction)
-

@@ -44,4 +44,3 @@ def load_block_timestamps(
         )
 
     return block_timestamps
-

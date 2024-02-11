@@ -8,9 +8,9 @@ import polars as pl
 def join_contracts(df: pl.DataFrame, contracts: pl.DataFrame) -> pl.DataFrame:
     return df.join(
         contracts,
-        left_on="address",
-        right_on="contract_address",
-        how="left",
+        left_on='address',
+        right_on='contract_address',
+        how='left',
     )
 
 
@@ -43,9 +43,9 @@ def agg_by_contract_field(
 def agg_by_contract_fields(
     agg: pl.DataFrame, contracts: pl.DataFrame
 ) -> typing.Mapping[str, pl.DataFrame]:
-    agg_by_init_code = agg_by_contract_field(
-        agg, contracts, 'init_code_hash'
-    ).sort('prop_of_n_creates', descending=True)
+    agg_by_init_code = agg_by_contract_field(agg, contracts, 'init_code_hash').sort(
+        'prop_of_n_creates', descending=True
+    )
     agg_by_factory = agg_by_contract_field(agg, contracts, 'factory').sort(
         'prop_of_n_creates', descending=True
     )
@@ -86,4 +86,3 @@ def plot_cumulative_creates_by_contract_fields(
     plt.legend(loc='lower right')
     toolplot.add_tick_grid()
     plt.title('Cumulative distribution of creates\nby contract fields')
-

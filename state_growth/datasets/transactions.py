@@ -35,8 +35,5 @@ def aggregate_transactions(
     df: state_growth.FrameType, *, group_by: str = 'block_number'
 ) -> state_growth.FrameType:
     return (
-        df.group_by(group_by)
-        .agg(**state_growth.get_schema_agg(schema))
-        .sort(group_by)
+        df.group_by(group_by).agg(**state_growth.get_schema_agg(schema)).sort(group_by)
     )
-
