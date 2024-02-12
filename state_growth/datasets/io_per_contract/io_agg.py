@@ -5,22 +5,18 @@ import polars as pl
 import state_growth
 
 
-def aggregate_contract_slot_reads(
-    df: pl.DataFrame, time_column: str
-) -> pl.DataFrame:
+def aggregate_contract_slot_reads(df: pl.DataFrame, time_column: str) -> pl.DataFrame:
     return (
         df.group_by(time_column, 'contract_address')
         .agg(
             n_reads=pl.len(),
-            n_unique_read_slots=pl.n_unique("slot"),
+            n_unique_read_slots=pl.n_unique('slot'),
         )
         .sort(time_column, 'n_reads', descending=[False, True])
     )
 
 
-def aggregate_contract_slot_diffs(
-    df: pl.DataFrame, time_column: str
-) -> pl.DataFrame:
+def aggregate_contract_slot_diffs(df: pl.DataFrame, time_column: str) -> pl.DataFrame:
     creates = df.filter(pl.col.from_value == state_growth.binary_zero_word)
     updates = df.filter(
         (pl.col.from_value != state_growth.binary_zero_word)
@@ -56,38 +52,28 @@ def aggregate_contract_slot_diffs(
 def compute_contract_slot_agg_proportions(agg: pl.DataFrame) -> pl.DataFrame:
     exprs = dict(
         prop_slot_writes=pl.sum('n_slot_writes') / agg['n_slot_writes'].sum(),
-        prop_slot_creates=pl.sum('n_slot_creates')
-        / agg['n_slot_creates'].sum(),
-        prop_slot_updates=pl.sum('n_slot_updates')
-        / agg['n_slot_updates'].sum(),
-        prop_slot_deletes=pl.sum('n_slot_deletes')
-        / agg['n_slot_deletes'].sum(),
+        prop_slot_creates=pl.sum('n_slot_creates') / agg['n_slot_creates'].sum(),
+        prop_slot_updates=pl.sum('n_slot_updates') / agg['n_slot_updates'].sum(),
+        prop_slot_deletes=pl.sum('n_slot_deletes') / agg['n_slot_deletes'].sum(),
     )
 
     if 'n_unique_written_slots' in agg.columns:
         exprs['prop_unique_slot_writes'] = (
-            pl.sum('n_unique_written_slots')
-            / agg['n_unique_written_slots'].sum()
+            pl.sum('n_unique_written_slots') / agg['n_unique_written_slots'].sum()
         )
     if 'n_unique_created_slots' in agg.columns:
         exprs['prop_unique_slot_creates'] = (
-            pl.sum('n_unique_created_slots')
-            / agg['n_unique_created_slots'].sum()
+            pl.sum('n_unique_created_slots') / agg['n_unique_created_slots'].sum()
         )
     if 'n_unique_updated_slots' in agg.columns:
         exprs['prop_unique_slot_updates'] = (
-            pl.sum('n_unique_updated_slots')
-            / agg['n_unique_updated_slots'].sum()
+            pl.sum('n_unique_updated_slots') / agg['n_unique_updated_slots'].sum()
         )
     if 'n_unique_deleted_slots' in agg.columns:
         exprs['prop_unique_slot_deletes'] = (
-            pl.sum('n_unique_deleted_slots')
-            / agg['n_unique_deleted_slots'].sum()
+            pl.sum('n_unique_deleted_slots') / agg['n_unique_deleted_slots'].sum()
         )
 
     return (
-        agg.group_by('address')
-        .agg(**exprs)
-        .sort('prop_slot_writes', descending=True)
+        agg.group_by('address').agg(**exprs).sort('prop_slot_writes', descending=True)
     )
-

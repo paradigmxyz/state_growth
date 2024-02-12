@@ -30,6 +30,11 @@ event_types = {
     'uniswap_sync': '0x1c411e9a96e071241c2f21f7726b17ae89e3cab4c78be50e062b03a9fffbbad1',
     'uniswap_swap': '0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822',
     'transfer_single': '0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62',
+    'AnswerUpdated': '0x0559884fd3a460db3073b7fc896cc77986f16e378210ded43186175bf646fc5f',
+    'AnswerUpdated_OLD': '0xc379d0e412d8792cf238c6c045bafec46b2bdad53a28ee4abce236ac6145ae84',
+    'NewRound': '0x0109fc6f55cf40689f02fbaad7af7fe7bbac8a3d2186600afc7d3e10cac60271',
+    'ResponseReceived': '0xb51168059c83c860caf5b830c5d2e64c2172c6fb2fe9f25447d9838e18d93b60',
+    'TransferSingle': '0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62',
 }
 
 erc20s = {

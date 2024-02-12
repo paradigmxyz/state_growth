@@ -34,6 +34,7 @@ def transform_chunks(
     min_block: int,
     max_block: int,
     chunk_size: int,
+    raw_columns: typing.Sequence[str] | None = None,
     add_missing_time_intervals: bool = True,
     verbose: bool = False,
 ) -> None:
@@ -92,6 +93,7 @@ def transform_chunk(
     raw_time_data: pl.DataFrame,
     start_block: int,
     end_block: int,
+    raw_columns: typing.Sequence[str] | None = None,
     add_missing_time_intervals: bool = True,
     verbose: bool = False,
 ) -> None:
@@ -147,10 +149,12 @@ def transform_chunk(
         datatype=raw_input_datatype,
         min_block=chunk_start,
         max_block=chunk_end,
+        columns=raw_columns,
         **chunk_context,
     )
 
-    if join_time_column and time_column_name != 'block_number':
+    add_time_column = join_time_column and time_column_name != 'block_number'
+    if add_time_column:
         raw_dataset = state_growth.add_time_column(
             raw_dataset,
             time_intervals=time_intervals,
@@ -169,7 +173,7 @@ def transform_chunk(
     transformed = transformed.with_columns(pl.col(pl.UInt32).cast(pl.UInt64))
 
     # add missing time intervals
-    if add_missing_time_intervals:
+    if add_time_column and add_missing_time_intervals:
         transformed = state_growth.add_missing_time_intervals(
             transformed,
             time_intervals=time_intervals,
@@ -177,16 +181,17 @@ def transform_chunk(
         )
 
     # add block bounds
-    transformed = transformed.join(
-        time_intervals[[time_column_name, 'first_block', 'last_block']],
-        on=time_column_name,
-        how='left',
-    )
-    columns = [time_column_name, 'first_block', 'last_block']
-    columns = columns + [
-        column for column in transformed.columns if column not in columns
-    ]
-    transformed = transformed.select(columns)
+    if time_column_name is not None:
+        transformed = transformed.join(
+            time_intervals[[time_column_name, 'first_block', 'last_block']],
+            on=time_column_name,
+            how='left',
+        )
+        columns = [time_column_name, 'first_block', 'last_block']
+        columns = columns + [
+            column for column in transformed.columns if column not in columns
+        ]
+        transformed = transformed.select(columns)
 
     # filter out pre-intervals
     min_block = transformed['first_block'].min()
