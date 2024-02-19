@@ -10,7 +10,7 @@ contract_labels: typing.Mapping[str, str] = {
     '0x00000000006c3852cbef3e08e8df289169ede581': 'DEX: OpenSea, Seaport 1.1',
     '0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208': 'DEX: IDEX',
     '0x7be8076f4ea4a4ad08075c2508e481d6c946d12b': 'DEX: OpenSea, Wyvern',
-    '0x1a2a1c938ce3ec39b6d47113c7955baa9dd454f2': 'Bridge: Axie',
+    '0x1a2a1c938ce3ec39b6d47113c7955baa9dd454f2': 'Game: Axie Bridge',
     '0x8a91c9a16cd62693649d80afa85a09dbbdcb8508': 'Scam: MMM BSC',
     '0x7f268357a8c2552623316e2562d90e642bb538e5': 'DEX: OpenSea, Wyvern',
     '0x32400084c286cf3e17e7b677ea9583e60a000324': 'Bridge: zkSync era',
@@ -158,7 +158,6 @@ contract_labels: typing.Mapping[str, str] = {
     '0x6f54ca6f6ede96662024ffd61bfd18f3f4e34dff': 'Bridge: Zora Inbox',
     '0x881d40237659c251811cec9c364ef91dc08d300c': 'DEX: Metamask Router',
     '0x7a250d5630b4cf539739df2c5dacb4c659f2488d': 'DEX: Uniswap Router',
-    '0xdac17f958d2ee523a2206206994597c13d831ec7': 'ERC20: USDT',
     '0x6131b5fae19ea4f9d964eac0408e4408b66337b5': 'DEX: Kyberswap',
     '0xdb5889e35e379ef0498aae126fc2cce1fbd23216': 'DEX: BananaGun',
     '0xaeba8e2307a22b6824a9a7a39f8b016c357cd1fe': 'Unknown',
@@ -174,7 +173,6 @@ contract_labels: typing.Mapping[str, str] = {
     '0x08aa34cc843ceebcc88a627f18430294aa9780be': 'Unknown',
     '0x3e6118da317f7a433031f03bb71ab870d87dd2dd': 'Bridge: Starkex',
     '0x902f09715b6303d4173037652fa7377e5b98089e': 'Bridge: LayerZero',
-    '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': 'ERC20: USDC',
     '0x47312450b3ac8b5b8e247a6bb6d523e7605bdb60': 'Bridge: Starkware',
     '0xad3b67bca8935cb510c8d18bd45f0b94f54a968f': 'Unknown',
     '0xc36442b4a4522e871399cd717abdd847ab11fe88': 'DEX: Uniswap Positions NFT',
@@ -236,10 +234,23 @@ contract_labels: typing.Mapping[str, str] = {
 
 
 def load_manual_labels() -> pl.DataFrame:
-    categories_from_labels = {
-        bytes.fromhex(address[2:]): label.split(':')[0]
-        for address, label in contract_labels.items()
-    }
+    addresses = []
+    categories = []
+    names = []
+    for address, label in contract_labels.items():
+        addresses.append(bytes.fromhex(address[2:]))
+        if ':' in label:
+            category, name = label.split(': ', 1)
+        else:
+            category = label
+            name = ''
+        categories.append(category)
+        names.append(name)
+
     return pl.DataFrame(
-        list(categories_from_labels.items()), schema=['address', 'label']
+        {
+            'address': addresses,
+            'label': categories,
+            'name': names,
+        }
     )

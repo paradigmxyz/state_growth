@@ -37,6 +37,7 @@ def load_address_labels(
             )
             for sublabel_type in label_type
         ]
+        dfs = [df[['address', 'label']] for df in dfs]
         return pl.concat(dfs)
 
     elif isinstance(label_type, str):
