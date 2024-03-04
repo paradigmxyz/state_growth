@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import typing
+
 import polars as pl
 
 
@@ -42,3 +44,11 @@ def load_reth_db_sizes(path: str) -> pl.DataFrame:
     )
 
     return reth
+
+
+def load_reth_db_table(table_name: str, path: str) -> dict[str, typing.Any]:
+    return (
+        load_reth_db_sizes(path)
+        .filter(pl.col("Table Name") == table_name)
+        .to_dicts()[0]
+    )
